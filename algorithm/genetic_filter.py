@@ -1,11 +1,12 @@
 from algorithm.algorithm import Algorithm
+from algorithm.particle_filter import ParticleFilter
 from experiment.experiment import Experiment
 from hmm_model.hmm import *
 from itertools import product
 
 
-class GeneticFilter(Algorithm):
-    def __init__(self, experiment,
+class GeneticFilter(ParticleFilter):
+    def __init__(self,
                  name,
                  possible_states,
                  population_size=5,
@@ -14,7 +15,7 @@ class GeneticFilter(Algorithm):
                  mutation_probability=0.3,
                  crossover_mating_pool_size=2,
                  offspring_ratio_next_generation=0.2):
-        super().__init__(experiment, name)
+        super().__init__(name, population_size, num_of_sub_processes)
         self.possible_states = possible_states
         self.population_size = population_size
         self.num_of_sub_processes = num_of_sub_processes
@@ -22,9 +23,11 @@ class GeneticFilter(Algorithm):
         self.mutation_probability = mutation_probability
         self.crossover_mating_pool_size = crossover_mating_pool_size
         self.offspring_ratio_next_generation = offspring_ratio_next_generation
+        self.mean_population_fitness = None
 
     def run(self):
         self.y_pred = np.zeros(self.experiment.y_test.shape, dtype=int)
+        self.mean_population_fitness = np.zeros(self.experiment.y_test.shape, dtype=float)
         for i in range(self.experiment.y_test.shape[0]):
             population = {0: self.initialize_population()}
             for j in range(self.experiment.y_test.shape[1]):
@@ -44,32 +47,10 @@ class GeneticFilter(Algorithm):
                 # genetic operations
                 if j % self.genetic_operation_resolution == 0 and j > 0:
                     population[j] = self.do_genetic_operation(population[j], fitness, self.experiment.X_test[i, j])
+                # computing mean fitness
+                self.mean_population_fitness[i,j] = np.mean(fitness)
                 # sampling
                 population[j+1] = self.transition_population(population[j])
-
-    def transition_population(self, population):
-        next_population = np.zeros(population.shape, dtype=int)
-        for i in range(population.shape[0]):
-            next_population[i, :] = self.transition_sample(population[i, :])
-        return next_population
-
-    def transition_sample(self, individual):
-        return one_to_many(np.random.choice(self.experiment.hmm.transmat_.shape[1], p=self.experiment.hmm.transmat_[many_to_one(individual),:]))
-
-    def initialize_population(self):
-        pop_size = (self.population_size, self.num_of_sub_processes)
-        new_population = [one_to_many(np.random.choice(len(self.experiment.hmm.startprob_), p=self.experiment.hmm.startprob_)) for _ in range(self.population_size)]
-        return np.reshape(new_population, pop_size)
-
-    def cal_pop_fitness(self, hmm, pop, observation):
-        fitness = np.array([hmm.emissionprob_[many_to_one(x), observation] for x in pop])
-        return fitness
-
-    def cal_pop_fitness_over_time(self, hmm, pop_list, observation_list):
-        fitness = np.ones(pop_list[0].shape[0], dtype=float)
-        for i in range(len(pop_list)):
-            fitness *= self.cal_pop_fitness(hmm, pop_list[i], observation_list[i])
-        return fitness
 
     def one_point_mutation(self, offspring_crossover):
         # Mutation changes a single gene in each offspring randomly.
@@ -120,6 +101,9 @@ class GeneticFilter(Algorithm):
         offsprings_fitness = self.cal_pop_fitness(self.experiment.hmm, offsprings, current_observation)
         new_population = self.roulette_wheel_selection(population, offsprings, fitness, offsprings_fitness)
         return new_population
+
+    def get_mean_fitness(self):
+        return np.mean(self.mean_population_fitness, axis=0)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,13 @@
 from hmm_model.hmm import build_hmm
 from numpy import genfromtxt
 import numpy as np
+from datetime import datetime
 
 
 class Experiment:
 
-    def __init__(self, trans_file, emis_file, n_train_samples=20, n_test_samples=20, sample_length=2000, seed=1):
+    def __init__(self, algorithms, trans_file, emis_file, n_train_samples=20, n_test_samples=20, sample_length=2000, seed=1):
+        self.algorithms = algorithms
         self.trans_file = trans_file
         self.emis_file = emis_file
         self.seed = seed
@@ -39,6 +41,12 @@ class Experiment:
             self.X_test[i, :] = current_sample[0].ravel()
             self.y_test[i, :] = current_sample[1].ravel()
 
+    def run(self):
+        for algorithm in self.algorithms:
+            algorithm.experiment = self
+            start = datetime.now()
+            algorithm.run()
+            algorithm.run_time = round((datetime.now()-start).total_seconds(), 2)
 
 if __name__ == "__main__":
     experiment = Experiment(trans_file="hmm_model/hmm_transition_matrix.csv",

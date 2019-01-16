@@ -4,8 +4,8 @@ import numpy as np
 
 
 class Viterbi(Algorithm):
-    def __init__(self, experiment, name):
-        super().__init__(experiment, name)
+    def __init__(self, name):
+        super().__init__(name)
 
     def run(self):
         self.y_pred = np.zeros(self.experiment.y_test.shape, dtype=int)
