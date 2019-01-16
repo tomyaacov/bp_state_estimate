@@ -1,12 +1,12 @@
-from algorithm import Algorithm
-from experiment import Experiment
-import numpy as np
-from hmm_split import *
+from algorithm.algorithm import Algorithm
+from experiment.experiment import Experiment
+from hmm_model.hmm import *
 from itertools import product
 
 
 class GeneticFilter(Algorithm):
     def __init__(self, experiment,
+                 name,
                  possible_states,
                  population_size=5,
                  num_of_sub_processes=2,
@@ -14,7 +14,7 @@ class GeneticFilter(Algorithm):
                  mutation_probability=0.3,
                  crossover_mating_pool_size=2,
                  offspring_ratio_next_generation=0.2):
-        super().__init__(experiment)
+        super().__init__(experiment, name)
         self.possible_states = possible_states
         self.population_size = population_size
         self.num_of_sub_processes = num_of_sub_processes
@@ -89,7 +89,7 @@ class GeneticFilter(Algorithm):
             point = np.random.randint(1, parents.shape[1])
             offsprings[0, :] = list(parents[0, :point]) + list(parents[1, point:])
             offsprings[1, :] = list(parents[1, :point]) + list(parents[1, point:])
-            if list(offsprings[0, :]) in self.possible_states and list(offsprings[1, :]) in possible_states:
+            if list(offsprings[0, :]) in self.possible_states and list(offsprings[1, :]) in self.possible_states:
                 return offsprings
         return None
 
@@ -120,8 +120,6 @@ class GeneticFilter(Algorithm):
         offsprings_fitness = self.cal_pop_fitness(self.experiment.hmm, offsprings, current_observation)
         new_population = self.roulette_wheel_selection(population, offsprings, fitness, offsprings_fitness)
         return new_population
-
-
 
 
 if __name__ == "__main__":

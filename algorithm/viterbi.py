@@ -1,14 +1,14 @@
 from algorithm.algorithm import Algorithm
-from experiment import Experiment
+from experiment.experiment import Experiment
 import numpy as np
 
 
 class Viterbi(Algorithm):
-    def __init__(self, experiment):
-        super().__init__(experiment)
+    def __init__(self, experiment, name):
+        super().__init__(experiment, name)
 
     def run(self):
-        self.y_pred = np.zeros(self.experiment.y_test.shape)
+        self.y_pred = np.zeros(self.experiment.y_test.shape, dtype=int)
         for i in range(0, self.experiment.y_test.shape[0]):
             self.y_pred[i, :] = self.decode(self.experiment.X_test[i,:].reshape(-1,1))[1]
 

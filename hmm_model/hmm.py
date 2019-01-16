@@ -28,6 +28,13 @@ def build_hmm(trans, emis, seed=1):
     hmm.__setattr__("transmat_", trans)
     return hmm
 
+def one_to_many(state):
+    return [int(state / 4), state % 4]
+
+
+def many_to_one(state):
+    return state[0] * 4 + state[1]
+
 
 if __name__ == "__main__":
     trans = genfromtxt('hmm_transition_matrix.csv', delimiter=',')
