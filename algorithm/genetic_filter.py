@@ -103,7 +103,8 @@ class GeneticFilter(ParticleFilter):
         return new_population
 
     def get_mean_fitness(self):
-        return np.mean(self.mean_population_fitness, axis=0)
+        # j % self.genetic_operation_resolution == 0 and j > 0
+        return range(self.genetic_operation_resolution, self.mean_population_fitness.shape[1], self.genetic_operation_resolution), np.mean(self.mean_population_fitness[:, range(self.genetic_operation_resolution, self.mean_population_fitness.shape[1], self.genetic_operation_resolution)], axis=0)
 
 
 if __name__ == "__main__":

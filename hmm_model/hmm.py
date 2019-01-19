@@ -4,21 +4,7 @@ import numpy as np
 
 
 def build_hmm(trans, emis, seed=1):
-    """Builds and returns hmm_model given the transition and emission probabilities.
-
-    Parameters
-    ----------
-    trans : array-like
-        Parameters of distribution for each row of the transition probabilities.
-
-    emis : array-like
-        Probability of emitting a given symbol when in each state.
-
-    Returns
-    -------
-    hmm_model : MultinomialHMM
-        Resulting hmm_model.
-        """
+    """Builds and returns hmm_model given the transition and emission probabilities matrices"""
     hmm = MultinomialHMM(n_components=trans.shape[0],
                          algorithm="viterbi",
                          random_state=seed)
@@ -29,10 +15,12 @@ def build_hmm(trans, emis, seed=1):
     return hmm
 
 def one_to_many(state):
+    """Transforms integer state in the joint markov model into his integer list representation in the separated model"""
     return [int(state / 4), state % 4]
 
 
 def many_to_one(state):
+    """Transforms integer list state in the separated markov model into his integer representation in the joint model"""
     return state[0] * 4 + state[1]
 
 
