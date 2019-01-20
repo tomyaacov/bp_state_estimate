@@ -16,10 +16,10 @@ if __name__ == "__main__":
     # listing the algorithms investigated in the experiment
     gfilter4 = GeneticFilter("AGF4", possible_states, genetic_operation_resolution=4)
     gfilter5 = GeneticFilter("AGF5", possible_states, genetic_operation_resolution=5)
-    gfilter3 = GeneticFilter("AGF6", possible_states, genetic_operation_resolution=6)
+    gfilter6 = GeneticFilter("AGF6", possible_states, genetic_operation_resolution=6)
     pfilter = ParticleFilter("APF")
     viterbi = Viterbi("VA")
-    algorithms = [gfilter3, gfilter4, gfilter5, pfilter, viterbi]
+    algorithms = [gfilter4, gfilter5, gfilter6, pfilter, viterbi]
     # creating the experiment
     experiment = Experiment(algorithms=algorithms,
                             trans_file=os.path.join(DATA_DIR, 'test_2_hmm_transition_matrix.csv'),
