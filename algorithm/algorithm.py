@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 
 class Algorithm:
-
+    """Abstract class Algorithm"""
     def __init__(self, name, experiment=None):
         self.experiment = experiment
         self.name = name

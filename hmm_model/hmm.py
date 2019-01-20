@@ -14,6 +14,7 @@ def build_hmm(trans, emis, seed=1):
     hmm.__setattr__("transmat_", trans)
     return hmm
 
+
 def one_to_many(state):
     """Transforms integer state in the joint markov model into his integer list representation in the separated model"""
     return [int(state / 4), state % 4]

@@ -11,72 +11,77 @@ import pandas as pd
 
 
 class ResultAnalysis:
-
+    """Class ResultAnalysis which analyze the results obtained in experiment"""
     def __init__(self, experiment, algorithms):
         self.experiment = experiment
         self.algorithms = algorithms
 
     def run(self):
+        """Running the analysis given the experiment results and the """
         self.RESULTS_DIR = os.path.abspath(
             os.path.join(os.path.dirname(sys.modules['__main__'].__file__), 'results', self.modify_date_time()))
         os.mkdir(self.RESULTS_DIR)
         self.compute_mean_accuracy()
         self.mean_accuracy_plot()
-        self.compute_mean_adjusted_accuracy()
-        self.mean_adjusted_accuracy_plot()
-        self.compute_mean_adjusted_2_accuracy()
-        self.mean_adjusted_accuracy_2_plot()
+        self.compute_mean_binary_accuracy()
+        self.mean_binary_accuracy_plot()
+        self.compute_mean_bthread_binary_accuracy()
+        self.mean_adjusted_bthread_binary_plot()
         self.create_summary_table()
         self.mean_population_fitness_plot()
 
     def create_summary_table(self):
-        self.summary_table = pd.DataFrame(columns=['algorithm', 'mean accuracy', 'mean adjusted accuracy', 'mean adjusted 2 accuracy', 'run time'])
+        """Create the summary table with the evaluation metrices for each algorithm being examined"""
+        self.summary_table = pd.DataFrame(columns=['Algorithm', 'Mean Acc.', 'Mean Binary Acc.', 'Mean B-thread Binary Acc.'])
         for i in range(len(self.algorithms)):
             algorithm_name = self.algorithms[i].name
             self.summary_table.loc[i] = [algorithm_name,
-                                         np.mean(self.mean_accuracy[algorithm_name]),
-                                         # TODO: not sure its the best way to compute mean
-                                         np.mean(self.mean_adjusted_accuracy[algorithm_name]),
-                                         np.mean(self.mean_adjusted_2_accuracy[algorithm_name]),
-                                         self.algorithms[i].run_time]
+                                         round(np.mean(self.mean_accuracy[algorithm_name]), 3),
+                                         round(np.mean(self.mean_binary_accuracy[algorithm_name]), 3),
+                                         round(np.mean(self.mean_bthread_binary_accuracy[algorithm_name]), 3)]
         self.summary_table.to_csv(os.path.join(self.RESULTS_DIR, 'summary_table.csv'), index=False)
 
     def compute_mean_accuracy(self):
+        """Compute the mean accuracy for each algorithm"""
         self.mean_accuracy = {}
         for algorithm in self.algorithms:
             accuracy = algorithm.y_pred == self.experiment.y_test
             self.mean_accuracy[algorithm.name] = np.mean(accuracy, axis=0)
 
     def mean_accuracy_plot(self):
+        """Plotting the mean accuracy for each algorithm"""
         plt.figure()
         for key in self.mean_accuracy.keys():
             plt.plot(self.mean_accuracy[key], label=key)
         plt.ylabel('mean accuracy')
         plt.xlabel('time')
-        plt.title('mean accuracy')
         plt.legend()
+        plt.axis([0, self.experiment.sample_length, 0, 1])
         plt.grid(True)
         plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_accuracy_plot.png'))
 
-    def compute_mean_adjusted_accuracy(self, base_state=0):  # TODO: need to be adjusted to different hmms
-        self.mean_adjusted_accuracy = {}
+    def compute_mean_binary_accuracy(self, base_state=0):  # need to be adjusted to different hmms
+        """Compute the mean binary accuracy for each algorithm"""
+        self.mean_binary_accuracy = {}
         for algorithm in self.algorithms:
             accuracy = (algorithm.y_pred == base_state) == (self.experiment.y_test == base_state)
-            self.mean_adjusted_accuracy[algorithm.name] = np.mean(accuracy, axis=0)
+            self.mean_binary_accuracy[algorithm.name] = np.mean(accuracy, axis=0)
 
-    def mean_adjusted_accuracy_plot(self):
+    def mean_binary_accuracy_plot(self):
+        """Plotting the mean binary accuracy for each algorithm"""
         plt.figure()
-        for key in self.mean_adjusted_accuracy.keys():
-            plt.plot(self.mean_adjusted_accuracy[key], label=key)
-        plt.ylabel('mean adjusted accuracy')
+        for key in self.mean_binary_accuracy.keys():
+            plt.plot(self.mean_binary_accuracy[key], label=key)
+        plt.ylabel('mean binary accuracy')
         plt.xlabel('time')
-        plt.title('mean adjusted accuracy')
         plt.legend()
+        plt.axis([0, self.experiment.sample_length, 0, 1])
         plt.grid(True)
-        plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_adjusted_accuracy_plot.png'))
+        plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_binary_accuracy_plot.png'))
 
-    def compute_mean_adjusted_2_accuracy(self, threads_groups=[[0], [4, 8, 12], [1, 2, 3], [5, 6, 7, 9, 10, 11, 13, 14, 15]]):  # TODO: need to be adjusted to different hmms
-        self.mean_adjusted_2_accuracy = {}
+    def compute_mean_bthread_binary_accuracy(self, threads_groups=[[0], [4, 8, 12], [1, 2, 3], [5, 6, 7, 9, 10, 11, 13, 14, 15]]):  # need to be adjusted to different hmms
+        """Compute the mean bthread binary accuracy for each algorithm"""
+        self.mean_bthread_binary_accuracy = {}
         real_value = self.experiment.y_test
         for i in range(len(threads_groups)):
             real_value[np.isin(real_value, threads_groups[i])] = i
@@ -85,20 +90,22 @@ class ResultAnalysis:
             for i in range(len(threads_groups)):
                 algorithm_prediction[np.isin(algorithm_prediction, threads_groups[i])] = i
             accuracy = algorithm_prediction == real_value
-            self.mean_adjusted_2_accuracy[algorithm.name] = np.mean(accuracy, axis=0)
+            self.mean_bthread_binary_accuracy[algorithm.name] = np.mean(accuracy, axis=0)
 
-    def mean_adjusted_accuracy_2_plot(self):
+    def mean_adjusted_bthread_binary_plot(self):
+        """Plotting the mean bthread binary accuracy for each algorithm"""
         plt.figure()
-        for key in self.mean_adjusted_2_accuracy.keys():
-            plt.plot(self.mean_adjusted_2_accuracy[key], label=key)
-        plt.ylabel('mean adjusted 2 accuracy')
+        for key in self.mean_bthread_binary_accuracy.keys():
+            plt.plot(self.mean_bthread_binary_accuracy[key], label=key)
+        plt.ylabel('mean b-thread binary accuracy')
         plt.xlabel('time')
-        plt.title('mean adjusted 2 accuracy')
         plt.legend()
+        plt.axis([0, self.experiment.sample_length, 0, 1])
         plt.grid(True)
-        plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_adjusted_2_accuracy_plot.png'))
+        plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_bthread_binary_accuracy_plot.png'))
 
     def mean_population_fitness_plot(self):
+        """Plotting the mean fitness for each genetic algorithm"""
         plt.figure()
         for algorithm in self.algorithms:
             if isinstance(algorithm, GeneticFilter):
@@ -106,14 +113,14 @@ class ResultAnalysis:
                 plt.plot(x, y, label=algorithm.name)
         plt.ylabel('mean population fitness')
         plt.xlabel('time')
-        plt.title('mean population fitness')
         plt.legend()
-        plt.axis([0, len(y), 0, 0.2])
+        plt.axis([0, self.experiment.sample_length, 0, 0.05])
         plt.grid(True)
         plt.savefig(os.path.join(self.RESULTS_DIR, 'mean_population_fitness_plot.png'))
 
     @staticmethod
     def modify_date_time():
+        """Utility method for experiment results folder saving"""
         result = str(datetime.datetime.today().replace(microsecond=0))
         for char in "-: ":
             result = result.replace(char, "_")

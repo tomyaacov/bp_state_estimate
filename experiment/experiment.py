@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class Experiment:
-
+    """Class Experiment for experiment managing of hmm, samples and algorithms being tested"""
     def __init__(self, algorithms, trans_file, emis_file, n_train_samples=20, n_test_samples=20, sample_length=2000, seed=1):
         self.algorithms = algorithms
         self.trans_file = trans_file
@@ -21,12 +21,14 @@ class Experiment:
         self.y_test = None
 
     def initialize(self):
+        """Initializing the hmm from files and generating samples"""
         trans = genfromtxt(self.trans_file, delimiter=',')
         emis = genfromtxt(self.emis_file, delimiter=',')
         self.hmm = build_hmm(trans, emis, self.seed)
         self.generate_samples()
 
     def generate_samples(self):
+        """Generating the samples for the experiment given the hmm."""
         self.X_train = np.zeros([self.n_train_samples, self.sample_length]).astype(int)
         self.y_train = np.zeros([self.n_train_samples, self.sample_length]).astype(int)
         for i in range(self.n_train_samples):
@@ -42,11 +44,13 @@ class Experiment:
             self.y_test[i, :] = current_sample[1].ravel()
 
     def run(self):
+        """Running each algorithm the participates in the experiment"""
         for algorithm in self.algorithms:
             algorithm.experiment = self
             start = datetime.now()
             algorithm.run()
             algorithm.run_time = round((datetime.now()-start).total_seconds(), 2)
+
 
 if __name__ == "__main__":
     experiment = Experiment(trans_file="hmm_model/hmm_transition_matrix.csv",
